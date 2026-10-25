@@ -7,7 +7,7 @@ export const UNIVERSITY_CONFIG = {
   currentAcademicYear: "2026-2027",
   currentTerm: "Fall Semester",
   campus: "Main University Campus",
-  registrarOffice: "Office of Academic Records & Registration"
+  registrarOffice: "Office of the University Registrar & Academic Records"
 };
 
 export const INITIAL_STUDENTS = [
@@ -306,6 +306,119 @@ export const INITIAL_COURSES = [
   }
 ];
 
+export const INITIAL_EXAMS = [
+  {
+    id: "EXAM-101",
+    courseCode: "CS-101",
+    courseTitle: "Intro to Computer Science & Python",
+    date: "2026-12-10",
+    session: "Morning (09:00 - 12:00)",
+    room: "Auditorium Hall A",
+    proctor: "Dr. Evelyn Reed",
+    candidates: 114,
+    status: "Scheduled"
+  },
+  {
+    id: "EXAM-102",
+    courseCode: "MATH-102",
+    courseTitle: "Discrete Mathematics & Formal Structures",
+    date: "2026-12-11",
+    session: "Afternoon (14:00 - 17:00)",
+    room: "Science Complex Room 204",
+    proctor: "Prof. Arthur Miller",
+    candidates: 92,
+    status: "Scheduled"
+  },
+  {
+    id: "EXAM-201",
+    courseCode: "CS-201",
+    courseTitle: "Data Structures & Core Algorithms",
+    date: "2026-12-12",
+    session: "Morning (09:00 - 12:00)",
+    room: "Engineering Block Hall B",
+    proctor: "Dr. Alan Turing",
+    candidates: 86,
+    status: "Scheduled"
+  },
+  {
+    id: "EXAM-202",
+    courseCode: "CS-202",
+    courseTitle: "Computer Architecture & Hardware",
+    date: "2026-12-13",
+    session: "Afternoon (14:00 - 17:00)",
+    room: "Turing Concourse Hall C",
+    proctor: "Prof. Michael Chang",
+    candidates: 74,
+    status: "Scheduled"
+  },
+  {
+    id: "EXAM-301",
+    courseCode: "CS-301",
+    courseTitle: "Advanced Algorithm Design & Complexity",
+    date: "2026-12-14",
+    session: "Morning (09:00 - 12:00)",
+    room: "Auditorium Hall A",
+    proctor: "Dr. Catherine Hayes",
+    candidates: 71,
+    status: "Scheduled"
+  },
+  {
+    id: "EXAM-302",
+    courseCode: "CS-302",
+    courseTitle: "Operating Systems & Concurrency",
+    date: "2026-12-15",
+    session: "Afternoon (14:00 - 17:00)",
+    room: "Engineering Block Hall B",
+    proctor: "Prof. Sarah Jenkins",
+    candidates: 68,
+    status: "Scheduled"
+  },
+  {
+    id: "EXAM-303",
+    courseCode: "CS-303",
+    courseTitle: "Relational Database Management Systems",
+    date: "2026-12-16",
+    session: "Morning (09:00 - 12:00)",
+    room: "Science Complex Room 204",
+    proctor: "Dr. Richard Falk",
+    candidates: 80,
+    status: "Scheduled"
+  },
+  {
+    id: "EXAM-401",
+    courseCode: "CS-401",
+    courseTitle: "Distributed Systems & Cloud Computing",
+    date: "2026-12-17",
+    session: "Morning (09:00 - 12:00)",
+    room: "Turing Concourse Hall C",
+    proctor: "Prof. Michael Chang",
+    candidates: 57,
+    status: "Scheduled"
+  },
+  {
+    id: "EXAM-402",
+    courseCode: "CS-402",
+    courseTitle: "Compiler Construction & Formal Languages",
+    date: "2026-12-18",
+    session: "Afternoon (14:00 - 17:00)",
+    room: "Auditorium Hall A",
+    proctor: "Dr. Alan Turing",
+    candidates: 42,
+    status: "Scheduled"
+  },
+  {
+    id: "EXAM-403",
+    courseCode: "CS-403",
+    courseTitle: "Machine Learning & Neural Architectures",
+    date: "2026-12-19",
+    session: "Morning (09:00 - 12:00)",
+    room: "Engineering Block Hall B",
+    proctor: "Dr. Catherine Hayes",
+    candidates: 64,
+    status: "Scheduled"
+  }
+];
+
 export const INITIAL_HELP_DESK_REQUESTS = [
   {
     id: "REQ-4011",
@@ -382,10 +495,10 @@ export const INITIAL_HELP_DESK_REQUESTS = [
 ];
 
 export const ELECTIVE_OPTIMIZER_ITEMS = [
-  { id: "EL-1", name: "Deep Reinforcement Learning", credits: 4, careerBenefitScore: 12 },
+  { id: "EL-1", name: "Deep Reinforcement Learning & Robotics", credits: 4, careerBenefitScore: 12 },
   { id: "EL-2", name: "Cloud Architecture & DevOps Practicum", credits: 3, careerBenefitScore: 10 },
   { id: "EL-3", name: "Ethical Hacking & Penetration Testing", credits: 3, careerBenefitScore: 9 },
   { id: "EL-4", name: "High-Performance GPU Computing", credits: 2, careerBenefitScore: 6 },
   { id: "EL-5", name: "Full-Stack Web Systems & Microservices", credits: 3, careerBenefitScore: 8 },
-  { id: "EL-6", name: "Quantum Information Basics", credits: 1, careerBenefitScore: 3 }
+  { id: "EL-6", name: "Quantum Information & Cryptography", credits: 2, careerBenefitScore: 5 }
 ];

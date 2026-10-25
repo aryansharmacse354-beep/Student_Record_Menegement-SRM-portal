@@ -29,45 +29,28 @@
         <div class="role-switcher-box">
           <span class="text-xs text-muted uppercase font-bold">Portal Role:</span>
           <select id="app-role-select" class="role-select" aria-label="Select User Role">
-            <option value="University Registrar" selected>University Registrar (Admin)</option>
-            <option value="Academic Advisor">Academic Advisor (Faculty)</option>
-            <option value="Student Self-Service">Student Self-Service Portal</option>
+            <option value="University Registrar" selected>University Registrar (Administrator)</option>
+            <option value="Academic Advisor">Academic Advisor (Faculty - Dr. Catherine Hayes)</option>
+            <option value="Student Self-Service">Student Self-Service Portal (Marcus Vance)</option>
           </select>
           <span class="badge badge-primary" id="current-role-badge">University Registrar</span>
         </div>
       </div>
     </div>
 
-    <!-- Navigation Tabs -->
-    <nav class="nav-tabs-bar" role="tablist" aria-label="University System Navigation">
-      <button class="nav-tab-btn tab-active" data-tab-target="dashboard" role="tab" aria-selected="true">
-        <span>📊</span> Executive Dashboard
-      </button>
-      <button class="nav-tab-btn" data-tab-target="students" role="tab" aria-selected="false">
-        <span>👥</span> Student Registry & Profiles
-      </button>
-      <button class="nav-tab-btn" data-tab-target="courses" role="tab" aria-selected="false">
-        <span>📚</span> Course Catalog & Prerequisites
-      </button>
-      <button class="nav-tab-btn" data-tab-target="helpdesk" role="tab" aria-selected="false">
-        <span>📋</span> Registrar Petitions & Triage
-      </button>
-      <button class="nav-tab-btn" data-tab-target="advising" role="tab" aria-selected="false">
-        <span>🎓</span> Academic Advising & Degree Planner
-      </button>
-      <button class="nav-tab-btn" data-tab-target="exams" role="tab" aria-selected="false">
-        <span>📅</span> Examination Timetable
-      </button>
-      <button class="nav-tab-btn" data-tab-target="analytics" role="tab" aria-selected="false">
-        <span>📈</span> Institutional Reports & Cohorts
-      </button>
+    <!-- Dynamic Role Context Banner -->
+    <div id="role-context-banner" class="hidden"></div>
+
+    <!-- Navigation Tabs (Dynamically updated per role) -->
+    <nav class="nav-tabs-bar" id="main-portal-nav" role="tablist" aria-label="University System Navigation">
+      <!-- Injected dynamically in js/app.js based on active role -->
     </nav>
   </header>
 
   <!-- Main Viewports -->
   <main class="main-content">
 
-    <!-- 1. TAB: EXECUTIVE DASHBOARD -->
+    <!-- ================= 1. REGISTRAR DASHBOARD ================= -->
     <section id="tab-panel-dashboard" class="tab-content-panel" role="tabpanel">
       <!-- High-Level KPI Cards -->
       <div class="stats-grid">
@@ -121,7 +104,7 @@
               <span>🎓 Elective Degree Optimizer</span> <span>&rarr;</span>
             </button>
             <button class="btn btn-outline w-full justify-between" data-quick-navigate="exams">
-              <span>📅 Final Exam Scheduler</span> <span>&rarr;</span>
+              <span>📅 Examination Timetable & Clashes</span> <span>&rarr;</span>
             </button>
             <button class="btn btn-outline w-full justify-between" data-quick-navigate="analytics">
               <span>⭐ Generate Dean's Honor Roll</span> <span>&rarr;</span>
@@ -145,7 +128,7 @@
       </div>
     </section>
 
-    <!-- 2. TAB: STUDENT REGISTRY & PROFILES -->
+    <!-- ================= 2. STUDENT RECORDS REGISTRY ================= -->
     <section id="tab-panel-students" class="tab-content-panel hidden" role="tabpanel" inert>
       <div class="card">
         <div class="card-header-flex">
@@ -215,7 +198,7 @@
       </div>
     </section>
 
-    <!-- 3. TAB: COURSE CATALOG & PREREQUISITES -->
+    <!-- ================= 3. COURSE CATALOG & PREREQUISITES ================= -->
     <section id="tab-panel-courses" class="tab-content-panel hidden" role="tabpanel" inert>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <!-- Visual Dependency Graph -->
@@ -273,7 +256,7 @@
       </div>
     </section>
 
-    <!-- 4. TAB: REGISTRAR HELPDESK & PETITIONS -->
+    <!-- ================= 4. REGISTRAR HELPDESK & PETITIONS ================= -->
     <section id="tab-panel-helpdesk" class="tab-content-panel hidden" role="tabpanel" inert>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Priority Queue Table -->
@@ -354,7 +337,7 @@
       </div>
     </section>
 
-    <!-- 5. TAB: ACADEMIC ADVISING & DEGREE PLANNER -->
+    <!-- ================= 5. ACADEMIC ADVISING & DEGREE PLANNER ================= -->
     <section id="tab-panel-advising" class="tab-content-panel hidden" role="tabpanel" inert>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <!-- Elective Credit Optimizer -->
@@ -390,23 +373,87 @@
       </div>
     </section>
 
-    <!-- 6. TAB: EXAMINATION TIMETABLE -->
+    <!-- ================= 6. EXAMINATION TIMETABLE ================= -->
     <section id="tab-panel-exams" class="tab-content-panel hidden" role="tabpanel" inert>
+      <!-- Clash Status Banner -->
+      <div id="exam-clash-status-banner"></div>
+
+      <!-- Quick Session Cards (Morning vs Afternoon) -->
+      <div id="exam-daily-session-cards"></div>
+
+      <!-- Master Exam Timetable Card -->
       <div class="card">
         <div class="card-header-flex">
           <div>
-            <h2 class="card-title">University Final Examination Timetable</h2>
-            <p class="card-subtitle">Constraint-based schedule resolving cohort exam clashes across all undergraduate divisions</p>
+            <h2 class="card-title">Master Final Examination Timetable</h2>
+            <p class="card-subtitle">Course examination dates, allocated halls, chief proctors, and student admit cards</p>
           </div>
-          <button class="btn btn-primary btn-sm admin-only" id="btn-generate-exam-schedule">
-            Recompute Conflict-Free Timetable
-          </button>
+          <div class="flex gap-2">
+            <button class="btn btn-outline btn-sm" id="btn-run-exam-clash-check">🔍 Detect & Resolve Clashes</button>
+            <button class="btn btn-primary btn-sm admin-only" id="btn-open-add-exam">+ Schedule Exam Session</button>
+          </div>
         </div>
-        <div id="exam-schedule-container"></div>
+
+        <!-- Search, Session & Room Filters -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+          <div>
+            <input 
+              type="search" 
+              id="exam-search-input" 
+              class="form-input" 
+              placeholder="Search by Course Code, Title, or Proctor..." 
+              autocomplete="off"
+            />
+          </div>
+          <div>
+            <select id="exam-session-filter" class="form-select">
+              <option value="all">All Sessions (Morning & Afternoon)</option>
+              <option value="Morning">Morning Session Only (09:00 - 12:00)</option>
+              <option value="Afternoon">Afternoon Session Only (14:00 - 17:00)</option>
+            </select>
+          </div>
+          <div>
+            <select id="exam-room-filter" class="form-select">
+              <option value="all">All Examination Halls</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Master Table -->
+        <div class="table-responsive mb-4">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Course Code</th>
+                <th>Course Title & Chief Proctor</th>
+                <th>Exam Date</th>
+                <th>Session Time</th>
+                <th>Allocated Room / Venue</th>
+                <th>Status</th>
+                <th class="text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="exam-timetable-tbody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Student Hall Ticket (Admit Card) Quick Lookup -->
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg flex flex-wrap justify-between items-center gap-3">
+          <div>
+            <div class="font-bold text-xs uppercase tracking-wide text-slate-800">Student Examination Hall Ticket (Admit Card) Lookup</div>
+            <div class="text-xs text-muted">Generate and print personal student examination passes with desk allocations</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <select id="hall-ticket-student-select" class="form-select text-xs min-w-[280px]"></select>
+            <button class="btn btn-primary btn-sm" id="btn-lookup-hall-ticket">Generate Admit Card</button>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- 7. TAB: INSTITUTIONAL REPORTS & COHORTS -->
+    <!-- ================= 7. INSTITUTIONAL REPORTS & COHORTS ================= -->
     <section id="tab-panel-analytics" class="tab-content-panel hidden" role="tabpanel" inert>
       <div class="card mb-4">
         <div class="card-header-flex">
@@ -423,6 +470,121 @@
       </div>
 
       <div id="analytics-report-container"></div>
+    </section>
+
+    <!-- ================= 8. FACULTY ADVISOR WORKSPACE (NEW) ================= -->
+    <section id="tab-panel-advisor-portal" class="tab-content-panel hidden" role="tabpanel" inert>
+      <!-- Advisor Header -->
+      <div id="advisor-header-card"></div>
+
+      <!-- Advisee Metrics -->
+      <div id="advisor-metrics-container"></div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <!-- Advisees Roster -->
+        <div class="card md:col-span-2">
+          <div class="card-header-flex">
+            <div>
+              <h3 class="card-title">Assigned Undergraduate Advisees Roster</h3>
+              <p class="card-subtitle">Students under direct academic advisement</p>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Student ID</th>
+                  <th>Full Name</th>
+                  <th>Major</th>
+                  <th>Year</th>
+                  <th>GPA</th>
+                  <th>Standing</th>
+                  <th class="text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="advisor-advisees-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Proctoring & Petitions -->
+        <div class="space-y-4">
+          <div class="card">
+            <h4 class="card-title mb-1">My Exam Invigilation Schedule</h4>
+            <p class="card-subtitle mb-2">Faculty examination proctoring duties</p>
+            <div id="advisor-proctoring-schedule"></div>
+          </div>
+
+          <div class="card">
+            <h4 class="card-title mb-1">Petitions for Faculty Endorsement</h4>
+            <p class="card-subtitle mb-2">Student appeals requiring advisor approval</p>
+            <div id="advisor-petitions-container"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 9. STUDENT SELF-SERVICE PORTAL (NEW) ================= -->
+    <section id="tab-panel-student-portal" class="tab-content-panel hidden" role="tabpanel" inert>
+      <!-- Student Top Identity Card -->
+      <div id="student-portal-header-card" class="mb-4"></div>
+
+      <!-- Overview Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <!-- Enrolled Courses -->
+        <div class="card md:col-span-2">
+          <div class="card-header-flex">
+            <div>
+              <h3 class="card-title">My Registered Course Portfolio</h3>
+              <p class="card-subtitle">Enrolled subjects for Fall Semester 2026</p>
+            </div>
+            <button class="btn btn-outline btn-sm" id="btn-student-print-transcript">🖨️ Official Transcript</button>
+          </div>
+          <div id="student-enrolled-courses-list"></div>
+        </div>
+
+        <!-- Advisor & Quick Help -->
+        <div class="space-y-4">
+          <div class="card">
+            <h4 class="card-title mb-2">Assigned Academic Advisor</h4>
+            <div id="student-advisor-card-content"></div>
+          </div>
+
+          <!-- File Petition Form for Student -->
+          <div class="card">
+            <h4 class="card-title mb-1">Submit Student Petition</h4>
+            <p class="card-subtitle mb-3">File an appeal or request to the Registrar</p>
+            <form id="student-self-petition-form">
+              <div class="form-group">
+                <label class="form-label" for="self-pet-category">Request Type</label>
+                <select id="self-pet-category" name="category" class="form-select text-xs">
+                  <option value="Official Degree Transcript">Official Degree Transcript Delivery</option>
+                  <option value="Prerequisite Override Petition">Prerequisite Override Petition</option>
+                  <option value="Credit Overload Authorization">Credit Overload Authorization (> 18 credits)</option>
+                  <option value="Grade Dispute Clarification">Grade Review & Dispute Clarification</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="self-pet-notes">Reason / Notes</label>
+                <textarea id="self-pet-notes" name="notes" class="form-input text-xs" rows="2" placeholder="Explain your request..." required></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary btn-sm w-full">+ Submit Request</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Degree Audit Progress -->
+        <div id="student-degree-audit-container"></div>
+        <!-- Petitions History -->
+        <div id="student-petitions-history-container"></div>
+      </div>
+    </section>
+
+    <!-- ================= 10. STUDENT'S PERSONAL EXAM PASS (NEW) ================= -->
+    <section id="tab-panel-student-exams" class="tab-content-panel hidden" role="tabpanel" inert>
+      <div id="student-hall-ticket-display"></div>
     </section>
 
   </main>
@@ -512,6 +674,69 @@
     <div class="modal-body" id="student-detail-body">
       <!-- Injected dynamically -->
     </div>
+  </dialog>
+
+  <!-- Schedule New Exam Session Modal -->
+  <dialog id="add-exam-modal" aria-label="Schedule Examination Session">
+    <div class="modal-header">
+      <h3>Schedule New Final Examination Session</h3>
+      <button type="button" class="btn btn-sm btn-outline" data-close-modal="add-exam-modal">✕</button>
+    </div>
+    <form id="add-exam-form" method="dialog">
+      <div class="modal-body">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="form-group">
+            <label class="form-label" for="exam-course-code">Course Code *</label>
+            <input type="text" id="exam-course-code" name="courseCode" class="form-input font-mono" placeholder="e.g. CS-405" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="exam-course-title">Course Title *</label>
+            <input type="text" id="exam-course-title" name="courseTitle" class="form-input" placeholder="e.g. Deep Learning Studio" required />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="form-group">
+            <label class="form-label" for="exam-date">Exam Date *</label>
+            <input type="date" id="exam-date" name="date" class="form-input" value="2026-12-21" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="exam-session">Session Slot *</label>
+            <select id="exam-session" name="session" class="form-select">
+              <option value="Morning (09:00 - 12:00)">Morning (09:00 - 12:00)</option>
+              <option value="Afternoon (14:00 - 17:00)">Afternoon (14:00 - 17:00)</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="form-group">
+            <label class="form-label" for="exam-room">Examination Hall / Room *</label>
+            <select id="exam-room" name="room" class="form-select">
+              <option value="Auditorium Hall A">Auditorium Hall A (Cap: 150)</option>
+              <option value="Engineering Block Hall B">Engineering Block Hall B (Cap: 100)</option>
+              <option value="Science Complex Room 204">Science Complex Room 204 (Cap: 90)</option>
+              <option value="Turing Concourse Hall C">Turing Concourse Hall C (Cap: 80)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="exam-proctor">Chief Proctor</label>
+            <input type="text" id="exam-proctor" name="proctor" class="form-input" value="Dr. Catherine Hayes" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-close-modal="add-exam-modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Schedule Session</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Hall Ticket (Admit Card) Modal -->
+  <dialog id="hall-ticket-modal" aria-label="Student Examination Hall Ticket">
+    <div class="modal-header">
+      <h3>Official Examination Hall Ticket</h3>
+      <button type="button" class="btn btn-sm btn-outline" data-close-modal="hall-ticket-modal">✕</button>
+    </div>
+    <div class="modal-body" id="hall-ticket-modal-body"></div>
   </dialog>
 
   <!-- Toast Notification Container -->
