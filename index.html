@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apex University | Student Information & Academic Records Portal</title>
+  <meta name="description" content="Apex University enterprise Student Information System (SIS) - Complete academic record management, course prerequisite validation, registrar petitions, and degree advising." />
+  
+  <link rel="stylesheet" href="./css/main.css" />
+  <link rel="stylesheet" href="./css/components.css" />
+  <link rel="stylesheet" href="./css/visualizers.css" />
+</head>
+<body>
+
+  <!-- Top University Portal Header -->
+  <header class="app-header">
+    <div class="header-top">
+      <div class="brand-section">
+        <div class="brand-icon">🏛️</div>
+        <div class="brand-text">
+          <h1 id="app-portal-title">Apex University &bull; Student Information & Records Portal</h1>
+          <div class="brand-meta" id="app-portal-meta">
+            Academic Year 2026&ndash;2027 &bull; Fall Semester Active &bull; Office of the University Registrar
+          </div>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <div class="role-switcher-box">
+          <span class="text-xs text-muted uppercase font-bold">Portal Role:</span>
+          <select id="app-role-select" class="role-select" aria-label="Select User Role">
+            <option value="University Registrar" selected>University Registrar (Admin)</option>
+            <option value="Academic Advisor">Academic Advisor (Faculty)</option>
+            <option value="Student Self-Service">Student Self-Service Portal</option>
+          </select>
+          <span class="badge badge-primary" id="current-role-badge">University Registrar</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs-bar" role="tablist" aria-label="University System Navigation">
+      <button class="nav-tab-btn tab-active" data-tab-target="dashboard" role="tab" aria-selected="true">
+        <span>📊</span> Executive Dashboard
+      </button>
+      <button class="nav-tab-btn" data-tab-target="students" role="tab" aria-selected="false">
+        <span>👥</span> Student Registry & Profiles
+      </button>
+      <button class="nav-tab-btn" data-tab-target="courses" role="tab" aria-selected="false">
+        <span>📚</span> Course Catalog & Prerequisites
+      </button>
+      <button class="nav-tab-btn" data-tab-target="helpdesk" role="tab" aria-selected="false">
+        <span>📋</span> Registrar Petitions & Triage
+      </button>
+      <button class="nav-tab-btn" data-tab-target="advising" role="tab" aria-selected="false">
+        <span>🎓</span> Academic Advising & Degree Planner
+      </button>
+      <button class="nav-tab-btn" data-tab-target="exams" role="tab" aria-selected="false">
+        <span>📅</span> Examination Timetable
+      </button>
+      <button class="nav-tab-btn" data-tab-target="analytics" role="tab" aria-selected="false">
+        <span>📈</span> Institutional Reports & Cohorts
+      </button>
+    </nav>
+  </header>
+
+  <!-- Main Viewports -->
+  <main class="main-content">
+
+    <!-- 1. TAB: EXECUTIVE DASHBOARD -->
+    <section id="tab-panel-dashboard" class="tab-content-panel" role="tabpanel">
+      <!-- High-Level KPI Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">👥</div>
+          <div>
+            <div class="stat-value" id="metric-total-students">--</div>
+            <div class="stat-label">Enrolled Undergraduates</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">⭐</div>
+          <div>
+            <div class="stat-value" id="metric-avg-gpa">--</div>
+            <div class="stat-label">Average Institutional GPA</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon purple">📚</div>
+          <div>
+            <div class="stat-value" id="metric-total-courses">--</div>
+            <div class="stat-label">Active Course Offerings</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber">⏳</div>
+          <div>
+            <div class="stat-value" id="metric-pending-requests">--</div>
+            <div class="stat-label">Open Registrar Petitions</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions and System Overview -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <!-- Quick Action Navigations -->
+        <div class="card md:col-span-1">
+          <h3 class="card-title mb-2">Registrar Quick Actions</h3>
+          <p class="card-subtitle mb-4">Frequently accessed administrative operations</p>
+          <div class="space-y-2">
+            <button class="btn btn-primary w-full justify-between" data-quick-navigate="students">
+              <span>+ Register New Student</span> <span>&rarr;</span>
+            </button>
+            <button class="btn btn-outline w-full justify-between" data-quick-navigate="helpdesk">
+              <span>⚡ Process Urgent Petitions</span> <span>&rarr;</span>
+            </button>
+            <button class="btn btn-outline w-full justify-between" data-quick-navigate="courses">
+              <span>🔍 Verify Course Prerequisites</span> <span>&rarr;</span>
+            </button>
+            <button class="btn btn-outline w-full justify-between" data-quick-navigate="advising">
+              <span>🎓 Elective Degree Optimizer</span> <span>&rarr;</span>
+            </button>
+            <button class="btn btn-outline w-full justify-between" data-quick-navigate="exams">
+              <span>📅 Final Exam Scheduler</span> <span>&rarr;</span>
+            </button>
+            <button class="btn btn-outline w-full justify-between" data-quick-navigate="analytics">
+              <span>⭐ Generate Dean's Honor Roll</span> <span>&rarr;</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Department Enrollment Breakdown -->
+        <div class="card md:col-span-1">
+          <h3 class="card-title mb-1">Enrollment by Department</h3>
+          <p class="card-subtitle mb-4">Undergraduate division distribution</p>
+          <div id="dashboard-dept-breakdown"></div>
+        </div>
+
+        <!-- Recent Registrar Activity -->
+        <div class="card md:col-span-1">
+          <h3 class="card-title mb-1">Recent Registrar Activity</h3>
+          <p class="card-subtitle mb-3">Live verified audit log</p>
+          <div id="dashboard-recent-activity"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. TAB: STUDENT REGISTRY & PROFILES -->
+    <section id="tab-panel-students" class="tab-content-panel hidden" role="tabpanel" inert>
+      <div class="card">
+        <div class="card-header-flex">
+          <div>
+            <h2 class="card-title">Official Student Records Registry</h2>
+            <p class="card-subtitle">Canonical student database with instant ID indexing and verified transcripts</p>
+          </div>
+          <div class="flex gap-2">
+            <button class="btn btn-outline btn-sm" id="btn-export-csv">Export CSV</button>
+            <button class="btn btn-outline btn-sm" id="btn-export-json">Export JSON</button>
+            <button class="btn btn-primary btn-sm admin-only" id="btn-add-student">+ Register New Student</button>
+          </div>
+        </div>
+
+        <!-- Search & Department Filtering -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
+          <div class="md:col-span-2">
+            <input 
+              type="search" 
+              id="student-search-input" 
+              class="form-input" 
+              placeholder="Search by Student ID (e.g. U2024-CS-101), Name, or Major..." 
+              autocomplete="off"
+            />
+          </div>
+          <div>
+            <select id="student-dept-filter" class="form-select" aria-label="Filter by Department">
+              <option value="all">All Departments</option>
+              <option value="Computer Science">Computer Science</option>
+              <option value="Data Science">Data Science</option>
+              <option value="Software Engineering">Software Engineering</option>
+              <option value="Cybersecurity">Cybersecurity</option>
+              <option value="Artificial Intelligence">Artificial Intelligence</option>
+              <option value="Information Systems">Information Systems</option>
+              <option value="Cloud Computing">Cloud Computing</option>
+            </select>
+          </div>
+          <div>
+            <select id="student-standing-filter" class="form-select" aria-label="Filter by Standing">
+              <option value="all">All Standings</option>
+              <option value="Active">Active (Good Standing)</option>
+              <option value="Graduated">Graduated (Alumni)</option>
+              <option value="Academic Probation">Academic Probation</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Student Data Table -->
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Student ID / Reg No</th>
+                <th>Full Name</th>
+                <th>Degree Program & Dept</th>
+                <th>Academic Year</th>
+                <th>Cumulative GPA</th>
+                <th>Standing</th>
+                <th class="text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="students-table-body">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. TAB: COURSE CATALOG & PREREQUISITES -->
+    <section id="tab-panel-courses" class="tab-content-panel hidden" role="tabpanel" inert>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <!-- Visual Dependency Graph -->
+        <div class="card md:col-span-2">
+          <div class="card-header-flex">
+            <div>
+              <h2 class="card-title">Curriculum Prerequisite Dependency Map</h2>
+              <p class="card-subtitle">Visual graph ensuring foundational course requirements before advanced study</p>
+            </div>
+            <button class="btn btn-outline btn-sm" id="btn-generate-roadmap">Generate Recommended Pathway</button>
+          </div>
+          <div id="course-network-container" class="mb-2"></div>
+          <div id="roadmap-result-box"></div>
+        </div>
+
+        <!-- Registration Prerequisite Validator -->
+        <div class="card">
+          <h3 class="card-title mb-1">Registration Prerequisite Check</h3>
+          <p class="card-subtitle mb-3">Verify student prerequisite clearance before course enrollment</p>
+          
+          <div class="form-group">
+            <label class="form-label" for="reg-student-select">Select Student</label>
+            <select id="reg-student-select" class="form-select"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reg-course-select">Target Course</label>
+            <select id="reg-course-select" class="form-select"></select>
+          </div>
+          <button class="btn btn-primary w-full" id="btn-verify-registration">Verify Clearance</button>
+
+          <div id="reg-eligibility-result" class="mt-3"></div>
+        </div>
+      </div>
+
+      <!-- Course Catalogue Table -->
+      <div class="card">
+        <h3 class="card-title mb-3">University Undergraduate Course Offerings</h3>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Course Code</th>
+                <th>Course Title & Instructor</th>
+                <th>Credits</th>
+                <th>Term</th>
+                <th>Capacity / Enrollment</th>
+                <th>Prerequisite Requirements</th>
+              </tr>
+            </thead>
+            <tbody id="courses-table-body">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. TAB: REGISTRAR HELPDESK & PETITIONS -->
+    <section id="tab-panel-helpdesk" class="tab-content-panel hidden" role="tabpanel" inert>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Priority Queue Table -->
+        <div class="card md:col-span-2">
+          <div class="card-header-flex">
+            <div>
+              <h2 class="card-title">Student Petitions & Requests Triage Queue</h2>
+              <p class="card-subtitle">Automated priority triage queue based on petition deadline and urgency score</p>
+            </div>
+            <button class="btn btn-primary btn-sm admin-only" id="btn-process-next-ticket">
+              ⚡ Process Highest Priority Request
+            </button>
+          </div>
+
+          <div id="processed-petition-result" class="mb-3"></div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Petition ID</th>
+                  <th>Student Name</th>
+                  <th>Request Category</th>
+                  <th>Due In</th>
+                  <th>Urgency Score</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="petition-queue-table-body">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Submit Petition Form -->
+        <div class="card">
+          <h3 class="card-title mb-1">File Official Student Petition</h3>
+          <p class="card-subtitle mb-3">Submit academic petitions directly to the Office of the Registrar</p>
+
+          <form id="new-petition-form">
+            <div class="form-group">
+              <label class="form-label" for="pet-student-id">Student ID</label>
+              <input type="text" id="pet-student-id" name="studentId" class="form-input" value="U2024-CS-101" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="pet-student-name">Student Full Name</label>
+              <input type="text" id="pet-student-name" name="studentName" class="form-input" value="Marcus Vance" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="pet-category">Petition Category</label>
+              <select id="pet-category" name="category" class="form-select">
+                <option value="Official Degree Transcript">Official Degree Transcript Delivery</option>
+                <option value="Prerequisite Override Petition">Prerequisite Override Petition</option>
+                <option value="Credit Overload Authorization">Credit Overload Authorization (> 18 credits)</option>
+                <option value="Grade Dispute Clarification">Grade Review & Dispute Clarification</option>
+                <option value="Leave of Absence">Formal Leave of Absence Application</option>
+                <option value="Minor Specialization Declaration">Minor Specialization Declaration</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="form-group">
+                <label class="form-label" for="pet-deadline">Deadline (Days)</label>
+                <input type="number" id="pet-deadline" name="deadlineDays" class="form-input" min="1" max="14" value="2" required />
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="pet-urgency">Urgency (1-10)</label>
+                <input type="number" id="pet-urgency" name="urgencyScore" class="form-input" min="1" max="10" value="8" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="pet-notes">Reason / Justification Notes</label>
+              <textarea id="pet-notes" name="notes" class="form-input text-xs" rows="2" placeholder="Detail the justification for this petition..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary w-full">+ Submit Petition to Registrar</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. TAB: ACADEMIC ADVISING & DEGREE PLANNER -->
+    <section id="tab-panel-advising" class="tab-content-panel hidden" role="tabpanel" inert>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Elective Credit Optimizer -->
+        <div class="card">
+          <div class="card-header-flex">
+            <div>
+              <h2 class="card-title">Elective Credit Specialization Optimizer</h2>
+              <p class="card-subtitle">Calculates the optimal elective course package within the student's credit allowance</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <label for="input-elective-credits" class="text-xs font-semibold">Credit Limit:</label>
+              <input type="number" id="input-elective-credits" class="form-input w-20 text-center" value="7" min="1" max="12" />
+              <button class="btn btn-primary btn-sm" id="btn-run-elective-opt">Optimize</button>
+            </div>
+          </div>
+          <div id="elective-opt-result"></div>
+        </div>
+
+        <!-- Degree Audit Progress Tracker -->
+        <div class="card">
+          <div class="card-header-flex">
+            <div>
+              <h2 class="card-title">Degree Audit & Graduation Progress Tracker</h2>
+              <p class="card-subtitle">Audits core requirements against completed academic history</p>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="audit-student-select">Select Student for Degree Audit</label>
+            <select id="audit-student-select" class="form-select"></select>
+          </div>
+          <div id="degree-audit-result"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. TAB: EXAMINATION TIMETABLE -->
+    <section id="tab-panel-exams" class="tab-content-panel hidden" role="tabpanel" inert>
+      <div class="card">
+        <div class="card-header-flex">
+          <div>
+            <h2 class="card-title">University Final Examination Timetable</h2>
+            <p class="card-subtitle">Constraint-based schedule resolving cohort exam clashes across all undergraduate divisions</p>
+          </div>
+          <button class="btn btn-primary btn-sm admin-only" id="btn-generate-exam-schedule">
+            Recompute Conflict-Free Timetable
+          </button>
+        </div>
+        <div id="exam-schedule-container"></div>
+      </div>
+    </section>
+
+    <!-- 7. TAB: INSTITUTIONAL REPORTS & COHORTS -->
+    <section id="tab-panel-analytics" class="tab-content-panel hidden" role="tabpanel" inert>
+      <div class="card mb-4">
+        <div class="card-header-flex">
+          <div>
+            <h2 class="card-title">Official Institutional Standing & Cohort Reports</h2>
+            <p class="card-subtitle">Query specific academic cohorts for honors recognition, advising intervention, or graduation</p>
+          </div>
+          <div class="flex gap-2">
+            <button class="btn btn-primary btn-sm" id="btn-gen-deans-list">⭐ Dean's Honor Roll</button>
+            <button class="btn btn-secondary btn-sm" id="btn-gen-probation">⚠️ Academic Probation List</button>
+            <button class="btn btn-outline btn-sm" id="btn-gen-graduation">🎓 Senior Graduation Candidates</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="analytics-report-container"></div>
+    </section>
+
+  </main>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- Register / Edit Student Modal -->
+  <dialog id="student-modal" aria-labelledby="student-modal-title">
+    <div class="modal-header">
+      <h3 id="student-modal-title">Register New Student Record</h3>
+      <button type="button" class="btn btn-sm btn-outline" data-close-modal="student-modal" aria-label="Close modal">✕</button>
+    </div>
+    <form id="student-form" method="dialog">
+      <div class="modal-body">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="form-group">
+            <label class="form-label" for="input-student-id">Student University ID *</label>
+            <input type="text" id="input-student-id" name="studentId" class="form-input font-mono" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="input-student-name">Full Legal Name *</label>
+            <input type="text" id="input-student-name" name="fullName" class="form-input" placeholder="e.g. Marcus Vance" required />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="form-group">
+            <label class="form-label" for="input-student-dept">Academic Department *</label>
+            <select id="input-student-dept" name="department" class="form-select">
+              <option value="Computer Science">Computer Science</option>
+              <option value="Data Science">Data Science</option>
+              <option value="Software Engineering">Software Engineering</option>
+              <option value="Cybersecurity">Cybersecurity</option>
+              <option value="Artificial Intelligence">Artificial Intelligence</option>
+              <option value="Information Systems">Information Systems</option>
+              <option value="Cloud Computing">Cloud Computing</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="input-student-prog">Degree Program</label>
+            <input type="text" id="input-student-prog" name="program" class="form-input" value="B.S. Computer Science" required />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div class="form-group">
+            <label class="form-label" for="input-student-year">Year Level</label>
+            <select id="input-student-year" name="yearLevel" class="form-select">
+              <option value="Freshman (Year 1)">Freshman (Year 1)</option>
+              <option value="Sophomore (Year 2)">Sophomore (Year 2)</option>
+              <option value="Junior (Year 3)" selected>Junior (Year 3)</option>
+              <option value="Senior (Year 4)">Senior (Year 4)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="input-student-gpa">Cumulative GPA (0.0 - 4.0)</label>
+            <input type="number" id="input-student-gpa" name="gpa" class="form-input" step="0.01" min="0" max="4.00" value="3.75" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="input-student-status">Academic Standing</label>
+            <select id="input-student-status" name="status" class="form-select">
+              <option value="Active">Active (Good Standing)</option>
+              <option value="Graduated">Graduated (Alumni)</option>
+              <option value="Academic Probation">Academic Probation</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="input-student-email">Official University Email</label>
+          <input type="email" id="input-student-email" name="email" class="form-input" placeholder="student@apex.edu" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-close-modal="student-modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save to Student Registry</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Student Profile Detail & Official Transcript Modal -->
+  <dialog id="student-detail-modal" aria-label="Student Academic Identity">
+    <div class="modal-header">
+      <h3>Official Academic Profile</h3>
+      <button type="button" class="btn btn-sm btn-outline" data-close-modal="student-detail-modal" aria-label="Close modal">✕</button>
+    </div>
+    <div class="modal-body" id="student-detail-body">
+      <!-- Injected dynamically -->
+    </div>
+  </dialog>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Application Entry Script -->
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
