@@ -1,7 +1,7 @@
 {
   "name": "student-record-management-system",
   "version": "1.0.0",
-  "description": "Student Record Management System for a University - DSA-II PBL Project by Aryan Sharma",
+  "description": "Enterprise Student Information System (SIS) - University Academic Records, Course Enrollment, Examination Scheduling & Degree Advising",
   "type": "module",
   "scripts": {
     "dev": "vite",

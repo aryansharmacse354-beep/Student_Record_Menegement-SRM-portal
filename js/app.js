@@ -91,8 +91,14 @@ class UniversitySISApp {
   }
 
   setupBranding() {
-    $("#app-portal-title").innerHTML = `${this.state.config.name} &bull; ${this.state.config.systemName}`;
-    $("#app-portal-meta").textContent = `${this.state.config.currentAcademicYear} ${this.state.config.currentTerm} &bull; ${this.state.config.campus}`;
+    const titleEl = $("#app-portal-title");
+    if (titleEl) {
+      titleEl.innerHTML = `${this.state.config.name} &bull; ${this.state.config.systemName}`;
+    }
+    const metaEl = $("#app-portal-meta");
+    if (metaEl) {
+      metaEl.textContent = `${this.state.config.currentAcademicYear} ${this.state.config.currentTerm} &bull; ${this.state.config.campus}`;
+    }
   }
 
   bindNavigation() {
@@ -114,6 +120,7 @@ class UniversitySISApp {
   switchTab(tabId) {
     this.activeTab = tabId;
 
+    // Update tab bar buttons
     $$("[data-tab-target]").forEach(btn => {
       if (btn.getAttribute("data-tab-target") === tabId) {
         btn.classList.add("tab-active");
@@ -124,6 +131,7 @@ class UniversitySISApp {
       }
     });
 
+    // Toggle panels
     $$(".tab-content-panel").forEach(panel => {
       if (panel.id === `tab-panel-${tabId}`) {
         panel.classList.remove("hidden");
@@ -134,14 +142,28 @@ class UniversitySISApp {
       }
     });
 
-    // Render triggers
-    if (tabId === "courses" && this.state.controllers.courseUI) this.state.controllers.courseUI.render();
-    if (tabId === "students" && this.state.controllers.studentUI) this.state.controllers.studentUI.render();
+    // Render triggers for Registrar
     if (tabId === "dashboard" && this.state.controllers.dashboardUI) this.state.controllers.dashboardUI.render();
+    if (tabId === "students" && this.state.controllers.studentUI) this.state.controllers.studentUI.render();
+    if (tabId === "courses" && this.state.controllers.courseUI) this.state.controllers.courseUI.render();
     if (tabId === "helpdesk" && this.state.controllers.helpdeskUI) this.state.controllers.helpdeskUI.render();
+    if (tabId === "advising" && this.state.controllers.advisingUI) this.state.controllers.advisingUI.render();
     if (tabId === "exams" && this.state.controllers.examScheduleUI) this.state.controllers.examScheduleUI.render();
-    if (tabId === "student-portal" && this.state.controllers.studentPortalUI) this.state.controllers.studentPortalUI.render();
+    if (tabId === "analytics" && this.state.controllers.analyticsUI) this.state.controllers.analyticsUI.render();
+
+    // Render triggers for Advisor
     if (tabId === "advisor-portal" && this.state.controllers.advisorUI) this.state.controllers.advisorUI.render();
+    if (tabId === "advisor-audit" && this.state.controllers.advisorUI) this.state.controllers.advisorUI.renderAuditTab();
+    if (tabId === "advisor-proctoring" && this.state.controllers.advisorUI) this.state.controllers.advisorUI.renderProctoringTab();
+    if (tabId === "advisor-petitions" && this.state.controllers.advisorUI) this.state.controllers.advisorUI.renderPetitionsTab();
+    if (tabId === "advisor-courses" && this.state.controllers.advisorUI) this.state.controllers.advisorUI.renderCoursesTab();
+
+    // Render triggers for Student
+    if (tabId === "student-portal" && this.state.controllers.studentPortalUI) this.state.controllers.studentPortalUI.render();
+    if (tabId === "student-registration" && this.state.controllers.studentPortalUI) this.state.controllers.studentPortalUI.renderRegistrationSection();
+    if (tabId === "student-exams" && this.state.controllers.studentPortalUI) this.state.controllers.studentPortalUI.renderHallTicketSection();
+    if (tabId === "student-audit" && this.state.controllers.studentPortalUI) this.state.controllers.studentPortalUI.renderDegreeAuditSection();
+    if (tabId === "student-petitions" && this.state.controllers.studentPortalUI) this.state.controllers.studentPortalUI.renderPetitionsHistory();
   }
 
   bindRoleSwitcher() {
@@ -182,18 +204,19 @@ class UniversitySISApp {
       if (roleBanner) {
         roleBanner.classList.remove("hidden");
         roleBanner.innerHTML = `
-          <div class="flex justify-between items-center text-xs py-2 px-4 bg-indigo-50 border-b border-indigo-200 text-indigo-900">
-            <span>🧑‍🏫 <strong>Faculty View:</strong> Logged in as <strong>Dr. Catherine Hayes</strong> &bull; Senior Academic Advisor (Computer Science & AI)</span>
-            <span>Assigned Advisees: <strong>4 Students</strong> &bull; Term: Fall 2026</span>
+          <div class="flex flex-wrap justify-between items-center text-xs py-2 px-4 bg-indigo-50 border-b border-indigo-200 text-indigo-900 gap-2">
+            <span>🧑‍🏫 <strong>Faculty Advisor Session:</strong> Logged in as <strong>Dr. Catherine Hayes</strong> &bull; Dept of Computer Science & AI</span>
+            <span>Assigned Advisees: <strong>4 Undergraduates</strong> &bull; Term: Fall 2026</span>
           </div>
         `;
       }
       if (navContainer) {
         navContainer.innerHTML = `
-          <button class="nav-tab-btn tab-active" data-tab-target="advisor-portal"><span>🧑‍🏫</span> Advisor Workspace</button>
-          <button class="nav-tab-btn" data-tab-target="advising"><span>🎓</span> Degree Audit & Electives</button>
-          <button class="nav-tab-btn" data-tab-target="courses"><span>📚</span> Courses & Prerequisites</button>
-          <button class="nav-tab-btn" data-tab-target="exams"><span>📅</span> Faculty Proctoring Schedule</button>
+          <button class="nav-tab-btn tab-active" data-tab-target="advisor-portal"><span>🧑‍🏫</span> Advisee Roster</button>
+          <button class="nav-tab-btn" data-tab-target="advisor-audit"><span>🎓</span> Advisee Degree Audits</button>
+          <button class="nav-tab-btn" data-tab-target="advisor-proctoring"><span>📅</span> Proctoring Duties</button>
+          <button class="nav-tab-btn" data-tab-target="advisor-petitions"><span>📝</span> Advisee Petitions</button>
+          <button class="nav-tab-btn" data-tab-target="advisor-courses"><span>📚</span> Faculty Courses</button>
         `;
       }
       this.switchTab("advisor-portal");
@@ -201,28 +224,37 @@ class UniversitySISApp {
     } else if (role === "Student Self-Service") {
       if (roleBanner) {
         roleBanner.classList.remove("hidden");
+        const currentStudentId = this.state.controllers.studentPortalUI?.activeStudentId || "U2024-CS-101";
+        const currentStudent = this.state.students.find(s => s.studentId === currentStudentId) || this.state.students[0];
+
         roleBanner.innerHTML = `
-          <div class="flex justify-between items-center text-xs py-2 px-4 bg-blue-50 border-b border-blue-200 text-blue-900">
-            <span>🎓 <strong>Student Self-Service View:</strong> Logged in as <strong>Marcus Vance</strong> (<code>U2024-CS-101</code>)</span>
+          <div class="flex flex-wrap justify-between items-center text-xs py-2 px-4 bg-blue-50 border-b border-blue-200 text-blue-900 gap-2">
+            <span>🎓 <strong>Student Self-Service View:</strong> Currently viewing record for <strong>${currentStudent.fullName}</strong> (<code>${currentStudent.studentId}</code>)</span>
             <div class="flex items-center gap-2">
-              <span>Switch Student Record:</span>
-              <select id="student-portal-identity-select" class="form-select py-0.5 text-xs font-semibold bg-white border border-blue-300"></select>
+              <label for="student-portal-identity-select" class="font-semibold text-slate-700">Switch Student Record:</label>
+              <select id="student-portal-identity-select" class="form-select py-1 text-xs font-semibold bg-white border border-blue-300">
+                ${this.state.students.map(s => `
+                  <option value="${s.studentId}" ${s.studentId === currentStudentId ? 'selected' : ''}>
+                    ${s.fullName} (${s.studentId}) - ${s.program}
+                  </option>
+                `).join("")}
+              </select>
             </div>
           </div>
         `;
       }
       if (navContainer) {
         navContainer.innerHTML = `
-          <button class="nav-tab-btn tab-active" data-tab-target="student-portal"><span>🏠</span> My Student Dashboard</button>
+          <button class="nav-tab-btn tab-active" data-tab-target="student-portal"><span>🏠</span> My Student Profile</button>
+          <button class="nav-tab-btn" data-tab-target="student-registration"><span>📝</span> Course Registration</button>
           <button class="nav-tab-btn" data-tab-target="student-exams"><span>🎟️</span> My Exam Admit Card</button>
-          <button class="nav-tab-btn" data-tab-target="advising"><span>🎓</span> My Degree Audit</button>
-          <button class="nav-tab-btn" data-tab-target="courses"><span>📝</span> Register & Prerequisites</button>
-          <button class="nav-tab-btn" data-tab-target="helpdesk"><span>📨</span> File a Petition</button>
+          <button class="nav-tab-btn" data-tab-target="student-audit"><span>🎓</span> My Degree Audit</button>
+          <button class="nav-tab-btn" data-tab-target="student-petitions"><span>📨</span> My Petitions</button>
         `;
       }
       this.switchTab("student-portal");
       if (this.state.controllers.studentPortalUI) this.state.controllers.studentPortalUI.render();
-      showToast("Switched to Student Self-Service Portal (Marcus Vance)", "info");
+      showToast("Switched to Student Self-Service Portal", "info");
     }
   }
 }

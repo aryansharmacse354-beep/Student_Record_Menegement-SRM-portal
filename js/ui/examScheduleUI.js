@@ -1,5 +1,5 @@
 // University Final Examination Timetable & Hall Ticket System
-// Enterprise features: Master timetable, Room/Proctor scheduling, Conflict detection, and Student Admit Cards
+// Master timetable, Room/Proctor scheduling, Automated Clash Detection, and Student Admit Cards
 
 import { $, $$, showToast, setupModal } from "../utils/dom.js";
 
@@ -31,7 +31,7 @@ export class ExamScheduleUI {
     // Filter by session
     const sessionFilter = $("#exam-session-filter");
     if (sessionFilter) {
-      sessionFilter.addEventListener("change", (e) => {
+      sessionFilter.addEventListener("change", () => {
         this.renderTable(this.getFilteredExams());
       });
     }
@@ -39,7 +39,7 @@ export class ExamScheduleUI {
     // Filter by room
     const roomFilter = $("#exam-room-filter");
     if (roomFilter) {
-      roomFilter.addEventListener("change", (e) => {
+      roomFilter.addEventListener("change", () => {
         this.renderTable(this.getFilteredExams());
       });
     }
@@ -49,6 +49,19 @@ export class ExamScheduleUI {
     if (addExamBtn) {
       addExamBtn.addEventListener("click", () => {
         this.openAddExamModal();
+      });
+    }
+
+    // Course dropdown change inside Add Exam modal to auto-populate title
+    const courseSelect = $("#exam-course-select");
+    if (courseSelect) {
+      courseSelect.addEventListener("change", (e) => {
+        const selectedCode = e.target.value;
+        const found = this.state.courses.find(c => c.code === selectedCode);
+        const titleInput = $("#exam-course-title");
+        if (titleInput) {
+          titleInput.value = found ? found.title : "";
+        }
       });
     }
 
@@ -65,7 +78,7 @@ export class ExamScheduleUI {
     const clashBtn = $("#btn-run-exam-clash-check");
     if (clashBtn) {
       clashBtn.addEventListener("click", () => {
-        this.runClashDetection();
+        this.runClashDetection(true);
       });
     }
 
@@ -76,6 +89,8 @@ export class ExamScheduleUI {
         const studentId = $("#hall-ticket-student-select")?.value;
         if (studentId) {
           this.showStudentHallTicket(studentId);
+        } else {
+          showToast("Please select a student from the dropdown first", "info");
         }
       });
     }
@@ -83,9 +98,11 @@ export class ExamScheduleUI {
 
   render() {
     this.populateStudentDropdown();
+    this.populateCourseSelectOptions();
     this.renderRoomFilterOptions();
     this.renderTable();
     this.renderSessionCards();
+    this.runClashDetection(false);
   }
 
   populateStudentDropdown() {
@@ -97,13 +114,28 @@ export class ExamScheduleUI {
     ).join("");
   }
 
+  populateCourseSelectOptions() {
+    const select = $("#exam-course-select");
+    if (!select) return;
+
+    select.innerHTML = `<option value="">-- Choose Course --</option>` + 
+      this.state.courses.map(c => 
+        `<option value="${c.code}">${c.code}: ${c.title}</option>`
+      ).join("") + 
+      `<option value="CUSTOM">+ Enter Custom Course Code</option>`;
+  }
+
   renderRoomFilterOptions() {
     const select = $("#exam-room-filter");
     if (!select) return;
 
+    const currentVal = select.value;
     const rooms = Array.from(new Set(this.exams.map(e => e.room)));
     select.innerHTML = `<option value="all">All Examination Halls</option>` + 
       rooms.map(r => `<option value="${r}">${r}</option>`).join("");
+    if (currentVal && rooms.includes(currentVal)) {
+      select.value = currentVal;
+    }
   }
 
   getFilteredExams() {
@@ -142,7 +174,7 @@ export class ExamScheduleUI {
           </td>
           <td>
             <div class="font-semibold text-slate-900">${exam.courseTitle}</div>
-            <div class="text-xs text-muted">Chief Proctor: ${exam.proctor}</div>
+            <div class="text-xs text-muted">Chief Proctor: <strong>${exam.proctor}</strong></div>
           </td>
           <td>
             <div class="font-bold text-xs text-slate-800">${exam.date}</div>
@@ -158,67 +190,92 @@ export class ExamScheduleUI {
             <div class="text-xs text-muted">${exam.candidates} Registered Examinees</div>
           </td>
           <td>
-            <span class="badge badge-success">${exam.status}</span>
+            <span class="badge badge-success">${exam.status || 'Scheduled'}</span>
           </td>
-          <td class="text-right">
+          <td class="text-right whitespace-nowrap">
             <button class="btn btn-sm btn-outline" data-exam-details="${exam.id}">Details</button>
+            <button class="btn btn-sm btn-outline text-rose-600 hover:bg-rose-50" data-exam-delete="${exam.id}" title="Remove exam session">✕</button>
           </td>
         </tr>
       `;
     }).join("");
 
+    // Details handler
     $$("[data-exam-details]", tbody).forEach(btn => {
       btn.addEventListener("click", () => {
         const id = btn.getAttribute("data-exam-details");
         const ex = this.exams.find(e => e.id === id);
         if (ex) {
-          showToast(`Exam ${ex.courseCode}: Scheduled on ${ex.date} (${ex.session}) in ${ex.room}.`, "info");
+          showToast(`Exam ${ex.courseCode}: ${ex.date} (${ex.session}) in ${ex.room} | Proctor: ${ex.proctor} | ${ex.candidates} examinees`, "info");
         }
       });
     });
+
+    // Delete / Cancel session handler
+    $$("[data-exam-delete]", tbody).forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.getAttribute("data-exam-delete");
+        this.handleDeleteExam(id);
+      });
+    });
+  }
+
+  handleDeleteExam(examId) {
+    const ex = this.exams.find(e => e.id === examId);
+    if (!ex) return;
+
+    this.exams = this.exams.filter(e => e.id !== examId);
+    this.state.exams = this.exams;
+    showToast(`Removed examination session for ${ex.courseCode} (${ex.date})`, "info");
+    this.render();
   }
 
   renderSessionCards() {
     const container = $("#exam-daily-session-cards");
     if (!container) return;
 
-    // Group exams by session
     const morningExams = this.exams.filter(e => e.session.includes("Morning"));
     const afternoonExams = this.exams.filter(e => e.session.includes("Afternoon"));
 
     container.innerHTML = `
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <div class="border border-slate-200 rounded-lg p-3 bg-white shadow-sm">
-          <div class="flex justify-between items-center border-b pb-2 mb-2">
+        <div class="border border-slate-200 rounded-lg p-3.5 bg-white shadow-sm">
+          <div class="flex justify-between items-center border-b pb-2 mb-2.5">
             <span class="font-bold text-xs uppercase tracking-wide text-primary">🌅 Morning Exam Sessions (09:00 - 12:00)</span>
-            <span class="badge badge-primary">${morningExams.length} Courses</span>
+            <span class="badge badge-primary">${morningExams.length} Courses Scheduled</span>
           </div>
-          <div class="space-y-1.5 max-h-48 overflow-y-auto">
+          <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
             ${morningExams.map(e => `
-              <div class="flex justify-between items-center text-xs p-1.5 bg-slate-50 rounded border border-slate-100">
+              <div class="flex justify-between items-center text-xs p-2 bg-slate-50 rounded border border-slate-100 hover:bg-slate-100 transition-colors">
                 <div>
                   <strong class="font-mono text-slate-900">${e.courseCode}:</strong> ${e.courseTitle}
-                  <div class="text-muted text-[11px]">${e.date} &bull; ${e.room}</div>
+                  <div class="text-muted text-[11px]">${e.date} (${this.getDayOfWeek(e.date)}) &bull; ${e.room}</div>
                 </div>
-                <span class="badge badge-secondary">${e.candidates} Stud.</span>
+                <div class="text-right">
+                  <span class="badge badge-secondary">${e.candidates} Stud.</span>
+                  <div class="text-[10px] text-muted">${e.proctor.split(" ").slice(-1)[0]}</div>
+                </div>
               </div>
             `).join("")}
           </div>
         </div>
 
-        <div class="border border-slate-200 rounded-lg p-3 bg-white shadow-sm">
-          <div class="flex justify-between items-center border-b pb-2 mb-2">
+        <div class="border border-slate-200 rounded-lg p-3.5 bg-white shadow-sm">
+          <div class="flex justify-between items-center border-b pb-2 mb-2.5">
             <span class="font-bold text-xs uppercase tracking-wide text-amber-700">🌇 Afternoon Exam Sessions (14:00 - 17:00)</span>
-            <span class="badge badge-warning">${afternoonExams.length} Courses</span>
+            <span class="badge badge-warning">${afternoonExams.length} Courses Scheduled</span>
           </div>
-          <div class="space-y-1.5 max-h-48 overflow-y-auto">
+          <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
             ${afternoonExams.map(e => `
-              <div class="flex justify-between items-center text-xs p-1.5 bg-slate-50 rounded border border-slate-100">
+              <div class="flex justify-between items-center text-xs p-2 bg-slate-50 rounded border border-slate-100 hover:bg-slate-100 transition-colors">
                 <div>
                   <strong class="font-mono text-slate-900">${e.courseCode}:</strong> ${e.courseTitle}
-                  <div class="text-muted text-[11px]">${e.date} &bull; ${e.room}</div>
+                  <div class="text-muted text-[11px]">${e.date} (${this.getDayOfWeek(e.date)}) &bull; ${e.room}</div>
                 </div>
-                <span class="badge badge-secondary">${e.candidates} Stud.</span>
+                <div class="text-right">
+                  <span class="badge badge-secondary">${e.candidates} Stud.</span>
+                  <div class="text-[10px] text-muted">${e.proctor.split(" ").slice(-1)[0]}</div>
+                </div>
               </div>
             `).join("")}
           </div>
@@ -227,10 +284,8 @@ export class ExamScheduleUI {
     `;
   }
 
-  runClashDetection() {
+  runClashDetection(isUserTriggered = false) {
     const banner = $("#exam-clash-status-banner");
-    
-    // Check conflicts: For each student, check if they have 2 exams on same date and same session
     const conflictsFound = [];
 
     this.state.students.forEach(student => {
@@ -238,14 +293,14 @@ export class ExamScheduleUI {
       const seenSlots = {};
 
       studentExams.forEach(e => {
-        const key = `${e.date}_${e.session}`;
+        const key = `${e.date}_${e.session.includes("Morning") ? "Morning" : "Afternoon"}`;
         if (seenSlots[key]) {
           conflictsFound.push({
             student: student.fullName,
             studentId: student.studentId,
             exam1: seenSlots[key],
             exam2: e.courseCode,
-            slot: key
+            slot: `${e.date} (${e.session})`
           });
         } else {
           seenSlots[key] = e.courseCode;
@@ -258,28 +313,32 @@ export class ExamScheduleUI {
         banner.innerHTML = `
           <div class="alert alert-success animate-fade-in mb-4">
             <div class="flex items-center gap-2">
-              <span class="text-lg">✓</span>
+              <span class="text-xl font-bold">✓</span>
               <div>
-                <strong class="font-bold text-sm">Automated Conflict Resolution Certified: ZERO Schedule Clashes!</strong>
+                <strong class="font-bold text-sm">Automated Schedule Clash Resolution: CERTIFIED ZERO CONFLICTS!</strong>
                 <p class="text-xs text-slate-700 mt-0.5">
-                  Verified all ${this.state.students.length} enrolled undergraduate cohorts across ${this.exams.length} examination courses. Every multi-course student has strictly separated morning and afternoon sessions.
+                  Algorithmically verified all ${this.state.students.length} enrolled undergraduate cohorts against ${this.exams.length} scheduled exam sessions. No candidate has simultaneous morning or afternoon exam papers.
                 </p>
               </div>
             </div>
           </div>
         `;
-        showToast("Timetable clash scan passed: 0 conflicts detected!", "success");
+        if (isUserTriggered) {
+          showToast("Schedule Clash Verification Passed: 0 overlaps across all cohorts!", "success");
+        }
       } else {
         banner.innerHTML = `
           <div class="alert alert-danger mb-4">
-            <strong class="font-bold">⚠️ Warning: Detected ${conflictsFound.length} Schedule Conflicts!</strong>
-            <p class="text-xs mt-1">The following students have overlapping examination timings:</p>
+            <strong class="font-bold text-sm">⚠️ Examination Clash Warning: Detected ${conflictsFound.length} Schedule Conflict(s)!</strong>
+            <p class="text-xs mt-1">The following students have conflicting examination slots:</p>
             <ul class="text-xs list-disc pl-5 mt-1 space-y-0.5">
-              ${conflictsFound.map(c => `<li>${c.student} (${c.studentId}) enrolled in both ${c.exam1} & ${c.exam2} on ${c.slot}</li>`).join("")}
+              ${conflictsFound.map(c => `<li><strong>${c.student}</strong> (<code>${c.studentId}</code>): Conflicting papers <strong>${c.exam1}</strong> & <strong>${c.exam2}</strong> on ${c.slot}</li>`).join("")}
             </ul>
           </div>
         `;
-        showToast(`Detected ${conflictsFound.length} exam clashes!`, "error");
+        if (isUserTriggered) {
+          showToast(`Detected ${conflictsFound.length} exam clashes!`, "error");
+        }
       }
     }
   }
@@ -293,7 +352,7 @@ export class ExamScheduleUI {
 
     if (container) {
       container.innerHTML = `
-        <div class="hall-ticket-card border-2 border-primary rounded-lg p-4 bg-white shadow-md">
+        <div class="hall-ticket-card border-2 border-primary rounded-lg p-5 bg-white shadow-md">
           <div class="flex justify-between items-center border-b-2 border-primary pb-3 mb-3">
             <div>
               <div class="text-xs uppercase font-bold text-primary tracking-wider">Apex University &bull; Division of Examinations</div>
@@ -302,11 +361,11 @@ export class ExamScheduleUI {
             </div>
             <div class="text-right">
               <span class="badge badge-success text-xs">Clearance Approved</span>
-              <div class="text-xs font-mono text-muted mt-1">Ticket #: ADM-${student.studentId.replace('U2024-', '')}-2026</div>
+              <div class="text-xs font-mono text-muted mt-1">Pass #: ADM-${student.studentId.replace('U2024-', '')}-2026</div>
             </div>
           </div>
 
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs bg-slate-50 p-2.5 rounded border border-slate-200 mb-3">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 text-xs bg-slate-50 p-3 rounded border border-slate-200 mb-3">
             <div><strong>Candidate Name:</strong><div class="text-slate-900 font-semibold">${student.fullName}</div></div>
             <div><strong>Student ID:</strong><div class="font-mono font-bold text-slate-900">${student.studentId}</div></div>
             <div><strong>Degree Program:</strong><div class="text-slate-800">${student.program}</div></div>
@@ -318,20 +377,20 @@ export class ExamScheduleUI {
             <table class="data-table text-xs">
               <thead>
                 <tr>
-                  <th>Course</th>
+                  <th>Course Code</th>
                   <th>Paper Title</th>
                   <th>Exam Date</th>
                   <th>Time Slot</th>
-                  <th>Assigned Hall / Desk</th>
+                  <th>Assigned Hall & Desk</th>
                 </tr>
               </thead>
               <tbody>
                 ${studentExams.length > 0 ? studentExams.map((e, idx) => `
                   <tr>
-                    <td class="font-mono font-bold">${e.courseCode}</td>
-                    <td>${e.courseTitle}</td>
+                    <td class="font-mono font-bold text-primary">${e.courseCode}</td>
+                    <td class="font-medium">${e.courseTitle}</td>
                     <td class="font-semibold">${e.date} (${this.getDayOfWeek(e.date)})</td>
-                    <td><span class="badge badge-primary">${e.session}</span></td>
+                    <td><span class="badge ${e.session.includes('Morning') ? 'badge-primary' : 'badge-warning'}">${e.session}</span></td>
                     <td><strong class="text-indigo-800">${e.room}</strong> &bull; Desk #${idx * 14 + 12}</td>
                   </tr>
                 `).join("") : '<tr><td colspan="5" class="text-center py-4 text-muted">No scheduled exams found for active course registrations.</td></tr>'}
@@ -339,19 +398,19 @@ export class ExamScheduleUI {
             </table>
           </div>
 
-          <div class="bg-amber-50 border border-amber-200 rounded p-2.5 text-[11px] text-amber-900 leading-relaxed mb-3">
-            <strong>Examinee Rules:</strong> Candidates must report to the allocated examination hall at least 15 minutes before the session starts. A physical university photo ID and this printed admit card are mandatory. Electronic devices are strictly prohibited.
+          <div class="bg-amber-50 border border-amber-200 rounded p-3 text-[11px] text-amber-900 leading-relaxed mb-3">
+            <strong>Mandatory Examinee Rules:</strong> Candidates must report to the allocated examination hall at least 15 minutes before the session starts. A physical university photo ID and this printed admit card are mandatory for admission. Mobile devices, smartwatches, and programmable calculators are strictly prohibited.
           </div>
 
           <div class="flex justify-between items-center text-xs text-muted border-t pt-2">
             <span>Verified by Office of the Registrar &bull; Digitally Signed</span>
-            <span>Controller of Examinations</span>
+            <span>Controller of Examinations, Apex University</span>
           </div>
         </div>
 
-        <div class="mt-4 flex justify-end gap-2">
-          <button class="btn btn-outline" data-close-modal="hall-ticket-modal">Close</button>
-          <button class="btn btn-primary" id="btn-print-hall-ticket-now">🖨️ Print Admit Card</button>
+        <div class="modal-footer mt-4 flex justify-end gap-2">
+          <button type="button" class="btn btn-secondary" data-close-modal="hall-ticket-modal">Close</button>
+          <button type="button" class="btn btn-primary" id="btn-print-hall-ticket-now">🖨️ Print Admit Card</button>
         </div>
       `;
 
@@ -365,6 +424,11 @@ export class ExamScheduleUI {
 
   printHallTicketWindow(student, studentExams) {
     const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      window.print();
+      return;
+    }
+
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
@@ -378,6 +442,7 @@ export class ExamScheduleUI {
             table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
             th { background: #f1f5f9; padding: 8px 10px; text-align: left; border-bottom: 2px solid #cbd5e1; }
             td { padding: 8px 10px; border-bottom: 1px solid #e2e8f0; }
+            .notice { background: #fffbeb; border: 1px solid #fef3c7; padding: 10px; border-radius: 4px; font-size: 11px; margin-top: 15px; }
             .footer { margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 12px; display: flex; justify-content: space-between; font-size: 11px; color: #64748b; }
           </style>
         </head>
@@ -385,10 +450,10 @@ export class ExamScheduleUI {
           <div class="header">
             <div>
               <h1>Apex University</h1>
-              <p style="margin: 3px 0 0; font-size: 13px; color: #475569;">Final Examination Admit Card &bull; Fall Semester 2026</p>
+              <p style="margin: 3px 0 0; font-size: 13px; color: #475569;">Official Final Examination Admit Card &bull; Fall Semester 2026</p>
             </div>
             <div style="text-align: right; font-size: 12px;">
-              <strong>Admit Card #: ADM-${student.studentId.replace('U2024-', '')}</strong>
+              <strong>Pass #: ADM-${student.studentId.replace('U2024-', '')}-2026</strong>
             </div>
           </div>
           <div class="meta">
@@ -413,16 +478,19 @@ export class ExamScheduleUI {
                 <tr>
                   <td style="font-family: monospace; font-weight: bold;">${e.courseCode}</td>
                   <td>${e.courseTitle}</td>
-                  <td>${e.date}</td>
+                  <td>${e.date} (${this.getDayOfWeek(e.date)})</td>
                   <td>${e.session}</td>
                   <td><strong>${e.room}</strong> (Desk #${idx * 14 + 12})</td>
                 </tr>
               `).join("")}
             </tbody>
           </table>
+          <div class="notice">
+            <strong>Examinee Rules:</strong> Mandatory photo ID required. Report 15 minutes before session commencement. All electronic devices strictly barred.
+          </div>
           <div class="footer">
-            <span>Verified by University Examination Board</span>
-            <span>Controller of Examinations</span>
+            <span>Verified by Office of the Registrar</span>
+            <span>Controller of Examinations, Apex University</span>
           </div>
           <script>window.onload = function() { window.print(); };</script>
         </body>
@@ -434,6 +502,7 @@ export class ExamScheduleUI {
   openAddExamModal() {
     const form = $("#add-exam-form");
     if (form) form.reset();
+    this.populateCourseSelectOptions();
     this.addExamModal.show();
   }
 
@@ -443,8 +512,8 @@ export class ExamScheduleUI {
     const date = formData.get("date")?.trim();
     const session = formData.get("session")?.trim();
     const room = formData.get("room")?.trim();
-    const proctor = formData.get("proctor")?.trim() || "Faculty Proctor";
-    const candidates = parseInt(formData.get("candidates"), 10) || 50;
+    const proctor = formData.get("proctor")?.trim() || "Dr. Catherine Hayes";
+    const candidates = parseInt(formData.get("candidates"), 10) || 65;
 
     if (!courseCode || !courseTitle || !date || !room) {
       showToast("Please fill all required examination scheduling fields", "error");
@@ -463,14 +532,15 @@ export class ExamScheduleUI {
       status: "Scheduled"
     };
 
-    this.exams.push(newExam);
+    this.exams.unshift(newExam);
     this.state.exams = this.exams;
-    showToast(`Scheduled exam session for ${courseCode} on ${date}`, "success");
+    showToast(`Scheduled final exam for ${courseCode} on ${date} (${session}) in ${room}!`, "success");
     this.addExamModal.close();
     this.render();
   }
 
   getDayOfWeek(dateStr) {
+    if (!dateStr) return "";
     const d = new Date(dateStr + "T00:00:00");
     const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     return isNaN(d.getDay()) ? "" : days[d.getDay()];

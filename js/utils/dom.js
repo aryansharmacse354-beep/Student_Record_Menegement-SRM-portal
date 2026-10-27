@@ -31,7 +31,6 @@ export function showToast(message, type = "info", duration = 3500) {
 
   container.appendChild(toast);
 
-  // Trigger entrance transition
   requestAnimationFrame(() => {
     toast.classList.add("show");
   });
@@ -53,17 +52,61 @@ export function setupModal(dialogId) {
     dialog,
     show: () => {
       if (typeof dialog.showModal === "function") {
-        dialog.showModal();
+        try {
+          dialog.showModal();
+        } catch (e) {
+          dialog.setAttribute("open", "");
+        }
       } else {
         dialog.setAttribute("open", "");
       }
     },
     close: () => {
       if (typeof dialog.close === "function") {
-        dialog.close();
+        try {
+          dialog.close();
+        } catch (e) {
+          dialog.removeAttribute("open");
+        }
       } else {
         dialog.removeAttribute("open");
       }
     }
   };
 }
+
+// Global modal close delegator
+document.addEventListener("click", (e) => {
+  const closeBtn = e.target.closest("[data-close-modal]");
+  if (closeBtn) {
+    const modalId = closeBtn.getAttribute("data-close-modal");
+    const modal = document.getElementById(modalId);
+    if (modal) {
+      if (typeof modal.close === "function") {
+        try {
+          modal.close();
+        } catch (err) {
+          modal.removeAttribute("open");
+        }
+      } else {
+        modal.removeAttribute("open");
+      }
+    }
+  }
+
+  // Backdrop click to close native <dialog>
+  if (e.target.tagName === "DIALOG") {
+    const rect = e.target.getBoundingClientRect();
+    const clickedInside = (
+      rect.top <= e.clientY && e.clientY <= rect.top + rect.height &&
+      rect.left <= e.clientX && e.clientX <= rect.left + rect.width
+    );
+    if (!clickedInside && typeof e.target.close === "function") {
+      try {
+        e.target.close();
+      } catch (err) {
+        e.target.removeAttribute("open");
+      }
+    }
+  }
+});
